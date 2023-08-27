@@ -1,6 +1,6 @@
-# Explosive Gaming Util for Clustorio
+# Explosive Gaming Command Library for Clustorio
 
-This is a plugin for [Clustorio](https://github.com/clusterio/clusterio) which provides utility methods for other lua modules.
+This is a plugin for [Clustorio](https://github.com/clusterio/clusterio) which provides an extension of the base game command api.
 
 ## Installation 
 
@@ -11,10 +11,10 @@ This module is currently not published and therefore can not be installed via `n
 ## Building from source
 
 1) Create a `external_plugins` directory within your clustorio instance.
-2) Clone this repository into that directory: `git clone https://github.com/explosivegaming/clustorio-exp-util`
+2) Clone this repository into that directory: `git clone https://github.com/explosivegaming/clustorio-exp-commands`
 3) Install the package dev dependencies: `npm install`
 4) Build the plugin: `npm run prepare`
-5) Add the plugin to your clustorio instance: `npx clustorioctl plugin add ./external_plugins/clustorio-exp-util`
+5) Add the plugin to your clustorio instance: `npx clustorioctl plugin add ./external_plugins/clustorio-exp-commands`
 
 ## Contributing 
 
