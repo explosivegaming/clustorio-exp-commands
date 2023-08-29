@@ -14,7 +14,7 @@ end)
 
 @usage-- Adding a data type
 -- You can not return nil from this function, doing so will raise an error, you must return a status
-Commands.add_data_type("integer", function(player, input)
+Commands.add_data_type("integer", function(input, player)
     local number = tonumber(input)
     if number == nil then
         return Commands.status.invalid_input("Value must be a valid number")
@@ -24,7 +24,7 @@ Commands.add_data_type("integer", function(player, input)
 end)
 
 -- It is recommend to use exiting parsers within your own to simplify checks, but make sure to propagate failures
-Commands.add_data_type("integer-range", function(player, input, minimum, maximum)
+Commands.add_data_type("integer-range", function(input, player, minimum, maximum)
     local success, status, integer = Commands.parse_data_type("integer", input, player)
     if not success then return status, number end
 
@@ -195,12 +195,11 @@ end
 --- Parse and validate an input string as a given data type
 -- @tparam string|function data_type The name of the data type parser to use to read and validate the input text
 -- @tparam string input The input string that will be read by the parser
--- @tparam LuaPlayer player The player who is calling the command, nil represents the server / your script
 -- @param ... Any other arguments that the parser is expecting
 -- @treturn boolean true when the input was successfully parsed and validated to be the correct type
 -- @return When The error status for why parsing failed, otherwise it is the parsed value
 -- @return When first is false, this is the error message, otherwise this is the parsed value
-function Commands.parse_data_type(data_type, input, player, ...)
+function Commands.parse_data_type(data_type, input, ...)
     local parser = Commands.data_types[data_type]
     if type(data_type) == "function" then
         parser = data_type
@@ -208,7 +207,7 @@ function Commands.parse_data_type(data_type, input, player, ...)
         return false, Commands.status.internal_error, {"exp-commands.internal-error" , "Data type \""..tostring(data_type).."\" does not have a registered parser"}
     end
 
-    local status, parsed = parser(player, input, ...)
+    local status, parsed = parser(input, ...)
     if status == nil then
         return Commands.status.internal_error, {"exp-commands.internal-error" , "Parser for data type \""..tostring(data_type).."\" returned a nil value"}
     elseif valid_command_status[status] then

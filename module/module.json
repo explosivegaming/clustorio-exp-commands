@@ -1,3 +1,7 @@
 {
-	"name": "exp_commands"
+	"name": "exp_commands",
+	"require": [
+		"data_types.lua",
+		"permission_authorities.lua"
+	]
 }
