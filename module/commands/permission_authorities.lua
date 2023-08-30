@@ -36,6 +36,11 @@ function Commands.lock_system_commands(player_name)
     system_players[player_name or game.player.name] = nil
 end
 
+--- Get a list of all players who have system commands unlocked
+function Commands.get_system_command_players()
+    return table.get_keys(system_players)
+end
+
 --- Stops a command from be used by any one
 -- @tparam string command_name The name of the command to disable
 function Commands.disable(command_name)
@@ -46,6 +51,11 @@ end
 -- @tparam string command_name The name of the command to enable
 function Commands.enable(command_name)
     disabled_commands[command_name] = nil
+end
+
+--- Get a list of all players who have system commands unlocked
+function Commands.get_disabled_commands()
+    return table.get_keys(disabled_commands)
 end
 
 --- If a command has the flag "admin_only" then only admins can use the command#
