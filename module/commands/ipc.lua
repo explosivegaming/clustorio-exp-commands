@@ -1,0 +1,25 @@
+--[[-- Command Module - IPC
+System command which sends an object to the clustorio api, should be used for debugging / echo commands
+@commands _system-ipc
+
+@usage-- Send a message on your custom channel, message is a json string
+/_system-ipc myChannel { "myProperty": "foo", "playerName": "Cooldude2606" }
+]]
+
+local Commands = require("modules/exp_commands/module_exports")
+local Clustorio = require("modules/clusterio/api")
+
+Commands.new("_system-ipc", "Send an IPC message on the selected channel")
+:flags{ "system_only" }
+:enable_auto_concatenation()
+:argument("channel", "string")
+:argument("message", "string")
+:register(function(_, channel, message)
+    local tbl = game.json_to_table(message)
+    if tbl == nil then
+        return Commands.status.invalid_input("Invalid json string")
+    else
+        Clustorio.send_json(channel, message)
+        return Commands.status.success()
+    end
+end)
