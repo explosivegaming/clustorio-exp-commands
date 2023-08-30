@@ -1,7 +1,11 @@
 {
 	"name": "exp_commands",
 	"require": [
-		"data_types.lua",
-		"permission_authorities.lua"
+		"commands/data_types.lua",
+		"commands/permission_authorities.lua",
+		"commands/help.lua",
+		"commands/rcon.lua",
+		"commands/sudo.lua",
+		"commands/ipc.lua"
 	]
 }
