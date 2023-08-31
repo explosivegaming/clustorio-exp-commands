@@ -33,8 +33,8 @@ export class GetCommandsRequest {
 export class UpdateCommandsEvent {
 	declare ["constructor"]: typeof UpdateCommandsEvent;
 	static type = "event" as const;
-	static src = "instance" as const;
-	static dst = "controller" as const;
+	static src = ["instance", "controller"] as const;
+	static dst = ["controller", "control"] as const;
 	static plugin = "exp_commands" as const;
 
 	constructor(

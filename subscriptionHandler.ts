@@ -27,8 +27,8 @@ export class SubscriptionRequest {
     }
 }
 
-export class SubscriptionHandler {
-    _eventHandlers = new Map<string, lib.EventHandler<unknown>>()
+export default class SubscriptionHandler {
+    _eventHandlers = new Map<string, lib.RequestHandler<unknown, unknown>>()
     _subscriptions = new Map<string, Set<ControlConnection>>()
 
     constructor(
@@ -37,10 +37,10 @@ export class SubscriptionHandler {
         this.controller.handle(SubscriptionRequest, this._handleEvent.bind(this));
     }
 
-    handle<T>(Event: lib.EventClass<T>, handler?: lib.EventHandler<T>): void;
+	handle<T>(Class: lib.EventClass<T>, handler: lib.RequestHandler<T, any>): void;
     handle(
         Event: lib.EventClass<unknown>,
-		handler?: lib.EventHandler<unknown>,
+		handler?: lib.RequestHandler<unknown, unknown>,
     ) {
         const entry = lib.Link._eventsByClass.get(Event);
 		if (!entry) {
@@ -70,7 +70,7 @@ export class SubscriptionHandler {
 		}
     }
 
-    _handleEvent(event: SubscriptionRequest, src: lib.Address, dst: lib.Address) {
+    async _handleEvent(event: SubscriptionRequest, src: lib.Address, dst: lib.Address) {
         if (!lib.Link._eventsByName.has(event.eventName)) {
             throw new Error(`Event ${event.eventName} is not a registered event`);
 		}
@@ -86,7 +86,7 @@ export class SubscriptionHandler {
         }
         const handler = this._eventHandlers.get(event.eventName);
 		if (handler) {
-            return handler(event, src, dst);
+            return await handler(event, src, dst);
         } else {
             return null;
         }

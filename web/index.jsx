@@ -4,7 +4,8 @@ import { Input, Table, Typography } from "antd";
 import * as lib from "@clusterio/lib";
 import { PageLayout, ControlContext } from "@clusterio/web_ui";
 
-import SubscribableProperty from "./subscribableProperty";
+import SubscriptionHandler from "./subscriptionHandler";
+import { UpdateCommandsEvent } from "../dist/plugin/messages";
 
 const strcmp = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" }).compare;
 
@@ -53,12 +54,14 @@ export class WebPlugin extends lib.BaseWebPlugin {
             }
         ]
 
-        this.commands = new SubscribableProperty([]);
+        this.commands = new SubscriptionHandler(UpdateCommandsEvent, [], (event, lastResponse) => {
+            return event.commands;
+        });
     }
 
     onControllerConnectionEvent(event) {
         if (event === "connect") {
-            this.commands.connectController(this.control);
+            this.commands.connectControl(this.control);
         }
     }
 }

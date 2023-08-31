@@ -1,6 +1,6 @@
 import * as lib from "@clusterio/lib";
 import * as messages from "./messages";
-import * as Properties from "./subscribableProperty";
+import { SubscriptionRequest } from "./subscriptionHandler"
 
 lib.definePermission({
 	name: "exp_commands.commands.view",
@@ -20,8 +20,7 @@ const info: lib.PluginInfo = {
 	messages: [
 		messages.GetCommandsRequest,
 		messages.UpdateCommandsEvent,
-		Properties.SubscribablePropertyRequest,
-		Properties.SubscribablePropertyUpdateEvent,
+		SubscriptionRequest,
 	],
 };
 

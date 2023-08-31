@@ -1,17 +1,20 @@
 import * as lib from "@clusterio/lib";
 
-import * as Properties from "./subscribableProperty"
+import SubscriptionHandler from "./subscriptionHandler"
 import { Command, GetCommandsRequest, UpdateCommandsEvent } from "./messages";
 
 export class ControllerPlugin extends lib.BaseControllerPlugin {
     instance_commands!: Map<number, Array<Command>>;
-    master_commands!: Properties.SubscribableProperty<Array<Command>>;
+    master_commands!: Array<Command>;
+    subscriptions!: SubscriptionHandler;
 
     async init() {
         this.instance_commands = new Map();
-        this.master_commands = new Properties.SubscribableProperty<Array<Command>>(this.controller, []);
+        this.subscriptions = new SubscriptionHandler(this.controller);
+        this.master_commands = [];
+        //this.controller.handle(GetCommandsRequest, this.handleGetCommandsRequest.bind(this));
         this.controller.handle(UpdateCommandsEvent, this.handleUpdateCommandsEvent.bind(this));
-        this.controller.handle(GetCommandsRequest, this.handleGetCommandsRequest.bind(this));
+        this.subscriptions.handle(UpdateCommandsEvent, this.handleUpdateCommandsSubscription.bind(this));
     }
 
     async handleGetCommandsRequest() {
@@ -28,7 +31,11 @@ export class ControllerPlugin extends lib.BaseControllerPlugin {
             }
         }
 
-        console.log(master_set);
-        this.master_commands.broadcastNewValue([...master_set.values()])
+        this.master_commands = [...master_set.values()];
+        this.subscriptions.broadcast(new UpdateCommandsEvent(this.master_commands));
+    }
+
+    async handleUpdateCommandsSubscription() {
+        return this.master_commands;
     }
 }
