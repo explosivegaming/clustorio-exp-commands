@@ -37,8 +37,8 @@ end)
 
 @usage-- Adding a command
 Commands.new("repeat", "This is my new command, it will repeat a message a number of times")
-:flags{ "admin_only" } -- Using the permission authority above, this makes the command admin only
-:aliases{ "repeat-message" } -- You can add as many aliases as you want
+:add_flags{ "admin_only" } -- Using the permission authority above, this makes the command admin only
+:add_aliases{ "repeat-message" } -- You can add as many aliases as you want
 :enable_auto_concatenation() -- This allows the final argument to be any length
 :argument("count", "integer-range", 1, 10) -- Allow any value between 1 and 10
 :optional("message", "string") -- This is an optional argument
@@ -333,11 +333,11 @@ end
 -- @tparam[opt] Color color The color the message should be printed in
 -- @tparam[opt] string sound The sound path to be played when the message is printed
 function Commands.print(message, color, sound)
-    local formatted = ExpUtil.format_any(message)
     local player = game.player
     if not player then
-        rcon.print(formatted)
+        rcon.print(game.table_to_json(message))
     else
+        local formatted = ExpUtil.format_any(message)
         player.print(formatted, color)
         player.play_sound{ path = sound or 'utility/scenario_message' }
     end
@@ -355,7 +355,7 @@ end
 
 --- This is a default callback that should never be called
 local function default_command_callback()
-    return Commands.internal_error('No callback registered')
+    return Commands.status.internal_error('No callback registered')
 end
 
 --- Returns a new command object, this will not register the command to the game
@@ -376,9 +376,9 @@ function Commands.new(name, help)
         auto_concat = false,
         min_arg_count = 0,
         max_arg_count = 0,
-        flags   = {}, -- stores flags that can be used by auth
+        flags = {}, -- stores flags that can be used by auth
         aliases = {}, -- stores aliases to this command
-        args  = {}, -- [{name: string, optional: boolean, default: any, data_type: function, parse_args: table}]
+        arguments = {}, -- [{name: string, optional: boolean, default: any, data_type: function, parse_args: table}]
     }, Commands._metatable)
 end
 
@@ -401,7 +401,7 @@ function Commands._prototype:argument(name, data_type, ...)
     end
     self.min_arg_count = self.min_arg_count + 1
     self.max_arg_count = self.max_arg_count + 1
-    self.args[#self.args + 1] = {
+    self.arguments[#self.arguments + 1] = {
         name = name,
         optional = false,
         data_type = data_type,
@@ -417,7 +417,7 @@ end
 -- @treturn Command The command object to allow chaining method calls
 function Commands._prototype:optional(name, data_type, ...)
     self.max_arg_count = self.max_arg_count + 1
-    self.args[#self.args + 1] = {
+    self.arguments[#self.arguments + 1] = {
         name = name,
         optional = true,
         data_type = data_type,
@@ -432,8 +432,8 @@ end
 -- @treturn Command The command object to allow chaining method calls
 function Commands._prototype:defaults(defaults)
     for name, value in pairs(defaults) do
-        if self.params[name] then
-            self.params[name].default = value
+        if self.arguments[name] then
+            self.arguments[name].default = value
         end
     end
     return self
@@ -442,7 +442,7 @@ end
 --- Set the flags for the command, these can be accessed by permission authorities to check who should use a command
 -- @tparam table flags An array of string flags, or a table who's keys are the flag names and values are the flag values
 -- @treturn Command The command object to allow chaining method calls
-function Commands._prototype:flags(flags)
+function Commands._prototype:add_flags(flags)
     for name, value in pairs(flags) do
         if type(name) == "number" then
             self.flags[value] = true
@@ -456,7 +456,7 @@ end
 --- Set the aliases for the command, these are alternative names that the command can be ran under
 -- @tparam table aliases An array of string names to use as aliases to this command
 -- @treturn Command The command object to allow chaining method calls
-function Commands._prototype:aliases(aliases)
+function Commands._prototype:add_aliases(aliases)
     local start_index = #self.aliases
     for index, alias in ipairs(aliases) do
         self.aliases[start_index + index] = alias
@@ -479,7 +479,7 @@ function Commands._prototype:register(callback)
 
     -- Generates a description to be used
     local description = {}
-    for index, argument in pairs(self.args) do
+    for index, argument in pairs(self.arguments) do
         if argument.optional then
             description[index] = "["..argument.name.."]"
         else
@@ -493,7 +493,7 @@ function Commands._prototype:register(callback)
         event.name = self.name
         local success, traceback = xpcall(Commands._event_handler, debug.traceback, event)
         if not success then
-            local _, msg = Commands.internal_error()
+            local _, msg = Commands.status.internal_error()
             Commands.error(msg)
             log(traceback)
         end
@@ -536,8 +536,10 @@ local function extract_arguments(raw_input, max_args, auto_concat)
     end)
 
     -- Extract all arguments
+    local index = 0
     local arguments = {}
-    for index, word in input_string:gmatch('%S+') do
+    for word in input_string:gmatch('%S+') do
+        index = index + 1
         if index > max_args then
             -- concat the word onto the last argument
             if auto_concat == false then
@@ -600,7 +602,7 @@ function Commands._event_handler(event)
 
     -- Parse the arguments, optional arguments will attempt to use a default if provided
     local arguments = {}
-    for index, argument in ipairs(command.args) do
+    for index, argument in ipairs(command.arguments) do
         local input = raw_arguments[index]
         if input == nil then
             -- We know this is an optional argument because the mimimum count is satisfied
@@ -612,7 +614,7 @@ function Commands._event_handler(event)
             end
         else
             -- Parse the raw argument to get the correct data type
-            local success, status, parsed = Commands.parse_data_type(command.data_type_parser, input, player, unpack(argument.parse_args))
+            local success, status, parsed = Commands.parse_data_type(argument.data_type_parser, input, player, unpack(argument.parse_args))
             if success == false then
                 log_command("Input parse failed", command, player, event.parameter, { status = valid_command_status[status], index = index, argument = argument, reason = parsed })
                 return Commands.error{'exp-commands.invalid-argument', argument.name, parsed}

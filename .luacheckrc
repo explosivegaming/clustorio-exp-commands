@@ -221,7 +221,7 @@ do -- Factorio STDs--
                 fields = {
                     "on_event", "on_nth_tick", "on_configuration_changed", "on_init", "on_load", "generate_event_name",
                     "raise_event", "get_event_handler", "mod_name", "get_event_order",
-                    "is_game_in_debug_mode", "object_name", "set_event_filter", "get_event_filter",
+                    "is_game_in_debug_mode", "object_name", "set_event_filter", "get_event_filter", "register_metatable",
                     active_mods = {read_only = true, other_fields = true},
                 },
                 other_fields = false,

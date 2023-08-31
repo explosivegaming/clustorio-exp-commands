@@ -24,6 +24,7 @@ setmetatable(rcon_env, { __index = rcon_statics })
 --- Some common static values which can be added now
 rcon_statics.Async = Async
 rcon_statics.ExpUtil = ExpUtil
+rcon_statics.Commands = Commands
 rcon_statics.Clustorio = Clustorio
 rcon_statics.output = Commands.print
 rcon_statics.ipc = Clustorio.send_json
@@ -54,7 +55,7 @@ function Commands.add_rcon_callback(name, callback)
 end
 
 Commands.new("_system-rcon", "Execute arbitrary code within a custom environment")
-:flags{ "system_only" }
+:add_flags{ "system_only" }
 :enable_auto_concatenation()
 :argument("invocation", "string")
 :register(function(player, invocation_string)

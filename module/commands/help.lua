@@ -42,7 +42,7 @@ local function format_as_pages(commands, page_size)
 end
 
 Commands.new("commands", "List and search all commands for a keyword")
-:aliases{ "chelp", "helpp" }
+:add_aliases{ "chelp", "helpp" }
 :argument("keyword", "string")
 :optional("page", "integer")
 :defaults{ page = 1 }

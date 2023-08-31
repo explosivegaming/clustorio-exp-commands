@@ -137,7 +137,7 @@ add("player-online", function(input)
 end)
 
 --- A player who is online and alive
-add("player-online", function(input)
+add("player-alive", function(input)
     local success, status, player = parse("player-online", input)
     if not success then
         return status, player

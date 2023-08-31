@@ -10,7 +10,7 @@ local Commands = require("modules/exp_commands/module_exports")
 local Clustorio = require("modules/clusterio/api")
 
 Commands.new("_system-ipc", "Send an IPC message on the selected channel")
-:flags{ "system_only" }
+:add_flags{ "system_only" }
 :enable_auto_concatenation()
 :argument("channel", "string")
 :argument("message", "string")

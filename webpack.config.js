@@ -18,10 +18,14 @@ module.exports = (env = {}) => merge(common(env), {
 			exposes: {
 				"./info": "./dist/plugin/info.js",
 				"./package.json": "./package.json",
+				"./web": "./web/index.jsx",
 			},
 			shared: {
 				"@clusterio/lib": { import: false },
 				"@clusterio/web_ui": { import: false },
+				"antd": { import: false },
+				"react": { import: false },
+				"react-dom": { import: false },
 			},
 		}),
 	],
