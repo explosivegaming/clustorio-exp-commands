@@ -7,7 +7,7 @@ export default class SubscribableProperty<T> {
         private event: lib.EventClass<T>,
         public value: T
     ) {
-        this.subscriptions.handle(event, async () => this.value);
+        this.subscriptions.handle(event, async () => new this.event(this.value));
     }
 
     get() {
