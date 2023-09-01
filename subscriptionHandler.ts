@@ -2,6 +2,8 @@ import type ControlConnection from "@clusterio/controller/src/ControlConnection"
 import { Type, Static } from "@sinclair/typebox";
 import * as lib from "@clusterio/lib";
 
+export type NotifyHandler<T> = (connection: ControlConnection) => Promise<T>;
+
 export class SubscriptionRequest {
     declare ["constructor"]: typeof SubscriptionRequest;
 	static type = "request" as const;
@@ -37,7 +39,7 @@ export default class SubscriptionHandler {
         this.controller.handle(SubscriptionRequest, this._handleEvent.bind(this));
     }
 
-	handle<T>(Class: lib.EventClass<T>, handler: lib.RequestHandler<T, any>): void;
+	handle<T>(Event: lib.EventClass<T>, handler?: lib.RequestHandler<T, any>): void;
     handle(
         Event: lib.EventClass<unknown>,
 		handler?: lib.RequestHandler<unknown, unknown>,
@@ -69,6 +71,24 @@ export default class SubscriptionHandler {
 			link.send(event);
 		}
     }
+
+	notify<T>(Event: lib.EventClass<T>, handler: NotifyHandler<lib.Event<T>>): void;
+	async notify(
+        Event: lib.EventClass<unknown>,
+		handler: NotifyHandler<lib.Event<unknown>>
+    ) {
+		const entry = lib.Link._eventsByClass.get(Event);
+        if (!entry) {
+			throw new Error(`Unregistered Event class ${Event.name}`);
+		}
+        const subscriptions = this._subscriptions.get(entry.name);
+        if (!subscriptions) {
+            throw new Error(`Event ${entry.name} is not a registered as subscribable`);
+		}
+        for (let link of subscriptions) {
+			link.send(await handler(link));
+		}
+	}
 
     async _handleEvent(event: SubscriptionRequest, src: lib.Address, dst: lib.Address) {
         if (!lib.Link._eventsByName.has(event.eventName)) {

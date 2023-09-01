@@ -20,16 +20,6 @@ export class Command {
     }
 }
 
-export class GetCommandsRequest {
-    declare ["constructor"]: typeof GetCommandsRequest;
-	static type = "request" as const;
-	static src =  "control" as const;
-	static dst = "controller" as const;
-	static plugin = "exp_commands" as const;
-	static permission = "exp_commands.commands.view" as const;
-	static Response = lib.jsonArray(Command);
-}
-
 export class UpdateCommandsEvent {
 	declare ["constructor"]: typeof UpdateCommandsEvent;
 	static type = "event" as const;

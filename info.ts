@@ -18,7 +18,6 @@ const info: lib.PluginInfo = {
 	webEntrypoint: "./web",
 	routes: ["/commands"],
 	messages: [
-		messages.GetCommandsRequest,
 		messages.UpdateCommandsEvent,
 		SubscriptionRequest,
 	],
