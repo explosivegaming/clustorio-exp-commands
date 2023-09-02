@@ -8,11 +8,9 @@ export default class SubscriptionHandler extends EventSubscriber {
     }
 
     use() {
-        console.log("Use SubscriptionHandler");
         const [lastResponse, setLastResponse] = useState(this.lastResponse);
 
         useEffect(() => {
-            console.log("Effect SubscriptionHandler");
             const update = () => setLastResponse(this.lastResponse);
             this.subscribe(update);
             return () => this.unsubscribe(update);

@@ -194,7 +194,6 @@ export class EventSubscriber<T> {
 			throw new Error("callback is not registered");
 		}
 
-        console.log("unsubscribe", this._state);
 		this._eventHandlers.splice(index, 1);
 		if (!this._eventHandlers.length) {
 			this._unsubscribe();
@@ -206,7 +205,6 @@ export class EventSubscriber<T> {
         const entry = lib.Link._eventsByClass.get(this._event)!;
         this._state = "subscribing";
         
-        console.log("_subscribe", this._state);
         try {
             const response: SubscriptionResponse = await this._control.send(new SubscriptionRequest("subscribe", entry.name, this.lastResponseTime));
             if (response.result === "subscribed") this._state = "subscribed";
@@ -216,7 +214,6 @@ export class EventSubscriber<T> {
         } catch {
             this._state = "errored";
         }
-        console.log("_subscribe DONE", this._state);
     }
 
     async _unsubscribe() {
@@ -224,13 +221,11 @@ export class EventSubscriber<T> {
         const entry = lib.Link._eventsByClass.get(this._event)!;
         this._state = "unsubscribing";
         
-        console.log("_unsubscribe", this._state);
         try {
             const response: SubscriptionResponse = await this._control.send(new SubscriptionRequest("unsubscribe", entry.name, this.lastResponseTime));
             if (response.result === "unsubscribed") this._state = "unsubscribed";
         } catch {
             this._state = "errored";
         }
-        console.log("_unsubscribe DONE", this._state);
     }
 }

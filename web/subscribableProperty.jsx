@@ -18,11 +18,9 @@ export default class SubscribableProperty extends SubscriptionHandler {
     }
 
     use() {
-        console.log("Use SubscribableProperty");
         const [value, setValue] = useState(this.value);
         
         useEffect(() => {
-            console.log("Effect SubscribableProperty");
             const update = () => setValue(this.value);
             this.subscribe(update);
             return () => this.unsubscribe(update);
