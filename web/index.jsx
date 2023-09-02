@@ -18,25 +18,25 @@ function CommandsPage() {
         <h2>Commands</h2>
         <Table
             dataSource={commands}
-            rowKey={item => item[0]}
+            rowKey={item => item.name}
             pagination={false}
             columns={[
                 {
                     title: "Command",
                     key: "command",
-                    sorter: (a, b) => strcmp(a[0], b[0]),
+                    sorter: (a, b) => strcmp(a.name, b.enabled),
                     defaultSortOrder: "descend",
-                    render: item => item[0],
+                    render: item => item.name,
                 },
                 {
                     title: "Enabled",
                     key: "enabled",
                     sorter: (a, b) => {
-                        if (a[1] && !b[1]) return -1; 
-                        if (!a[1] && b[1]) return 1; 
+                        if (a.enabled && !b.enabled) return -1; 
+                        if (!a.enabled && b.enabled) return 1; 
                         return 0;
                     },
-                    render: item => item[1] ? "True" : "False",
+                    render: item => item.enabled ? "True" : "False",
                 }
             ]}
         />

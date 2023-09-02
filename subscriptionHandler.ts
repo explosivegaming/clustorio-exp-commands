@@ -167,7 +167,7 @@ export class EventSubscriber<T> {
         }
     }
 
-    _handle(response: lib.Event<T>) {
+    async _handle(response: lib.Event<T>) {
         console.log("_handle", response);
         this.lastResponse = response;
         this.lastResponseTime = Date.now();

@@ -8,7 +8,7 @@ export default class SubscribableProperty extends SubscriptionHandler {
         this.parseResponse = parseResponse;
     }
 
-    _handle(response) {
+    async _handle(response) {
         this.lastResponse = response;
         this.lastResponseTime = Date.now();
         this.value = this.parseResponse(response);
