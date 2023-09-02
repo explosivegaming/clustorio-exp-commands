@@ -32,7 +32,7 @@ export class SubscriptionResponse {
 export class SubscriptionRequest {
     declare ["constructor"]: typeof SubscriptionRequest;
 	static type = "request" as const;
-	static src =  "control" as const;
+	static src =  ["control", "instance"] as const;
 	static dst = "controller" as const;
 	static plugin = "exp_commands" as const;
 	static permission = "exp_commands.commands.view" as const;
@@ -156,13 +156,13 @@ export class EventSubscriber<T> {
 
     constructor(
         private _event: lib.EventClass<T>,
-        private _control?: any // Controller has no definition
+        private _control?: lib.Link
     ) {
         const entry = lib.Link._eventsByClass.get(this._event);
 		if (!entry) {
 			throw new Error(`Unregistered Event class ${this._event.name}`);
 		}
-        if (_control) {
+        if (this._control) {
             this._control.handle(this._event, this._handle.bind(this));
         }
     }
@@ -176,7 +176,7 @@ export class EventSubscriber<T> {
 		}
     }
 
-    connectControl(control: any) {
+    connectControl(control: lib.Link) {
         if (this._control === control) return;
         this._control = control;
         this._control.handle(this._event, this._handle.bind(this));
@@ -201,7 +201,7 @@ export class EventSubscriber<T> {
     }
 
     async _subscribe() {
-        if (!this._control || !this._control.connector.connected || this._state === "subscribed" || this._state === "subscribing") return;
+        if (!this._control || !(this._control.connector as lib.WebSocketClientConnector).connected || this._state === "subscribed" || this._state === "subscribing") return;
         const entry = lib.Link._eventsByClass.get(this._event)!;
         this._state = "subscribing";
         
@@ -217,7 +217,7 @@ export class EventSubscriber<T> {
     }
 
     async _unsubscribe() {
-        if (!this._control || !this._control.connector.connected || this._state === "unsubscribed" || this._state === "unsubscribing") return;
+        if (!this._control || !(this._control.connector as lib.WebSocketClientConnector).connected || this._state === "unsubscribed" || this._state === "unsubscribing") return;
         const entry = lib.Link._eventsByClass.get(this._event)!;
         this._state = "unsubscribing";
         
