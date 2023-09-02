@@ -1,7 +1,7 @@
 import * as lib from "@clusterio/lib";
 
-import SubscriptionHandler from "./subscriptionHandler";
-import SubscribableProperty from "./subscribableProperty";
+import { SubscriptionHandler } from "./subscriptionHandler";
+import { SubscribableProperty } from "./subscribableProperty";
 import { Command, UpdateCommandsEvent } from "./messages";
 
 export class ControllerPlugin extends lib.BaseControllerPlugin {

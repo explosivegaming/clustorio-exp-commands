@@ -1,13 +1,21 @@
-import SubscriptionHandler from "./subscriptionHandler"
+import { SubscriptionHandler, SubscriptionRequest } from "./subscriptionHandler"
 import * as lib from "@clusterio/lib";
 
-export default class SubscribableProperty<T> {
+export class SubscribableProperty<T> {
     constructor(
         private subscriptions: SubscriptionHandler,
         private event: lib.EventClass<T>,
         public value: T
     ) {
-        this.subscriptions.handle(event, async () => new this.event(this.value));
+        this.subscriptions.handle(event, this.handleSubscription.bind(this));
+    }
+
+    async handleSubscription(request: SubscriptionRequest) {
+        if (request.lastRequestTime < Date.now()) {
+            return new this.event(this.value);
+        } else {
+            return null;
+        }
     }
 
     get() {

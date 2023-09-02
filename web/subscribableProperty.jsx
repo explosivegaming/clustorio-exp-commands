@@ -10,20 +10,23 @@ export default class SubscribableProperty extends SubscriptionHandler {
 
     _handle(response) {
         this.lastResponse = response;
+        this.lastResponseTime = Date.now();
         this.value = this.parseResponse(response);
-        for (let callback of this.eventHandlers) {
-			callback();
+        for (let callback of this._eventHandlers) {
+			callback(this.value);
 		}
     }
 
     use() {
+        console.log("Use SubscribableProperty");
         const [value, setValue] = useState(this.value);
         
         useEffect(() => {
-            const effectUpdate = () => setValue(this.value);
-            this.onUpdate(effectUpdate);
-            return () => this.offUpdate(effectUpdate);
-        })
+            console.log("Effect SubscribableProperty");
+            const update = () => setValue(this.value);
+            this.subscribe(update);
+            return () => this.unsubscribe(update);
+        }, [])
 
         return value
     }
