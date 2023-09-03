@@ -9,7 +9,7 @@ lib.definePermission({
 	grantByDefault: false
 })
 
-const info: lib.PluginInfo = {
+const info: lib.PluginDeclaration = {
 	name: "exp_commands",
 	title: "ExpGaming Module Commands",
 	description: "Provides a command library which handles: registration, input parsing, error handling, and permission checks",

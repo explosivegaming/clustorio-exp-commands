@@ -4,7 +4,7 @@ import { Input, Table, Typography } from "antd";
 import * as lib from "@clusterio/lib";
 import { PageLayout, ControlContext } from "@clusterio/web_ui";
 
-import SubscribableProperty from "./subscribableProperty";
+import { SubscribableProperty } from "./subscribers";
 import { UpdateCommandsEvent } from "../dist/plugin/messages";
 
 const strcmp = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" }).compare;
@@ -44,6 +44,8 @@ function CommandsPage() {
 }
 
 export class WebPlugin extends lib.BaseWebPlugin {
+    commands = new SubscribableProperty(UpdateCommandsEvent, []);
+
     async init() {
         this.pages = [
             {
@@ -53,10 +55,6 @@ export class WebPlugin extends lib.BaseWebPlugin {
                 content: <CommandsPage/>
             }
         ]
-
-        this.commands = new SubscribableProperty(UpdateCommandsEvent, [], (event) => {
-            return event.commands;
-        });
     }
 
     onControllerConnectionEvent(event) {

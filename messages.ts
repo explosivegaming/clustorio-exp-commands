@@ -39,4 +39,12 @@ export class UpdateCommandsEvent {
 	static fromJSON(json: Static<typeof UpdateCommandsEvent.jsonSchema>): UpdateCommandsEvent {
 		return new this(json.commands.map(command => Command.fromJSON(command)));
 	}
+
+	toProperty() {
+		return this.commands;
+	}
+
+	static fromProperty(newValue: Command[]): UpdateCommandsEvent {
+		return new this(newValue);
+	}
 }

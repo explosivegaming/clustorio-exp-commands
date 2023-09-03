@@ -11,21 +11,42 @@ export type SubscriptionResponseResult = "subscribed" | "unsubscribed"
 export class SubscriptionResponse {
     constructor(
         public result: SubscriptionResponseResult,
-        public eventReplay?: any // Event object for the event subscribed to, not sure how to type
+        public eventReplay: lib.Event<unknown> | null = null,
     ) {
+        if (eventReplay) {
+            const entry = lib.Link._eventsByClass.get(eventReplay.constructor);
+            if (!entry) {
+                throw new Error(`Unregistered Event class ${eventReplay.constructor.name}`);
+            }
+        }
     }
 
     static jsonSchema = Type.Tuple([
         lib.StringEnum(["subscribed", "unsubscribed"]),
-        Type.Optional(Type.Any()),
+        Type.Optional(Type.String()),
+        Type.Optional(Type.Object({})),
     ])
 
     toJSON() {
-        return [this.result, this.eventReplay];
+        if (this.eventReplay) {
+            const entry = lib.Link._eventsByClass.get(this.eventReplay.constructor); 
+            return [this.result, entry!.name, this.eventReplay];
+        } else {
+            return [this.result];
+        }
     }
 
     static fromJSON(json: Static<typeof SubscriptionResponse.jsonSchema>): SubscriptionResponse {
-        return new SubscriptionResponse(json[0], json[1]);
+        if (json[1]) {
+            const entry = lib.Link._eventsByName.get(json[1]);
+            if (!entry) {
+                throw new Error(`Unregistered Event class ${json[1]}`);
+            } else {
+                return new SubscriptionResponse(json[0], entry.eventFromJSON(json[2]));
+            }
+        } else {
+            return new SubscriptionResponse(json[0]);
+        }
     }
 }
 
@@ -168,7 +189,6 @@ export class EventSubscriber<T> {
     }
 
     async _handle(response: lib.Event<T>) {
-        console.log("_handle", response);
         this.lastResponse = response;
         this.lastResponseTime = Date.now();
         for (let callback of this._eventHandlers) {
@@ -183,7 +203,6 @@ export class EventSubscriber<T> {
     }
 
     subscribe(handler: EventSubscriberHandler<T>) {
-        console.log("subscribe", this._state);
         this._eventHandlers.push(handler);
 		this._subscribe();
     }
@@ -208,7 +227,7 @@ export class EventSubscriber<T> {
         try {
             const response: SubscriptionResponse = await this._control.send(new SubscriptionRequest("subscribe", entry.name, this.lastResponseTime));
             if (response.result === "subscribed") this._state = "subscribed";
-            if (response.eventReplay !== null) {
+            if (response.eventReplay) {
                 this._handle(response.eventReplay);
             }
         } catch {
