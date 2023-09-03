@@ -21,10 +21,15 @@ export class SubscriptionResponse {
         }
     }
 
-    static jsonSchema = Type.Tuple([
-        lib.StringEnum(["subscribed", "unsubscribed"]),
-        Type.Optional(Type.String()),
-        Type.Optional(Type.Object({})),
+    static jsonSchema = Type.Union([
+        Type.Tuple([
+            Type.Literal("subscribed"),
+            Type.String(),
+            Type.Unknown(),
+        ]),
+        Type.Tuple([
+            Type.Literal("unsubscribed"),
+        ])
     ])
 
     toJSON() {
@@ -37,7 +42,7 @@ export class SubscriptionResponse {
     }
 
     static fromJSON(json: Static<typeof SubscriptionResponse.jsonSchema>): SubscriptionResponse {
-        if (json[1]) {
+        if (json[0] === "subscribed") {
             const entry = lib.Link._eventsByName.get(json[1]);
             if (!entry) {
                 throw new Error(`Unregistered Event class ${json[1]}`);

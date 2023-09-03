@@ -12,7 +12,9 @@ const strcmp = new Intl.Collator(undefined, { numeric: true, sensitivity: "base"
 function CommandsPage() {
     const control = useContext(ControlContext);
     const plugin = control.plugins.get("exp_commands");
-    const commands = plugin.commands.use();
+    const commands = [...plugin.commands.use().values()];
+    console.log(plugin.commands)
+    console.log(commands)
 
     return <PageLayout nav={[{ name: "Commands" }]}>
         <h2>Commands</h2>
@@ -44,7 +46,7 @@ function CommandsPage() {
 }
 
 export class WebPlugin extends lib.BaseWebPlugin {
-    commands = new SubscribableProperty(UpdateCommandsEvent, []);
+    commands = new SubscribableProperty(UpdateCommandsEvent, new Map());
 
     async init() {
         this.pages = [

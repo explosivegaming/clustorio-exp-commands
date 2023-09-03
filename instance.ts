@@ -14,14 +14,14 @@ export class InstancePlugin extends lib.BaseInstancePlugin {
             return;
         }
 
-        const formatted = [];
+        const formatted = new Map();
         if (commands.disabled instanceof Array) {
             for (let command of commands.all) {
-                formatted.push(new Command(command, !commands.disabled.includes(command)))
+                formatted.set(command, new Command(command, !commands.disabled.includes(command)))
             }
         } else {
             for (let command of commands.all) {
-                formatted.push(new Command(command, true))
+                formatted.set(command, new Command(command, true))
             }
         }
 

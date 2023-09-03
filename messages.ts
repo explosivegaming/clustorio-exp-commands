@@ -1,4 +1,5 @@
 import { Type, Static } from "@sinclair/typebox";
+import { PropertyMapDifference } from "./subscribableProperty";
 import * as lib from "@clusterio/lib";
 
 export class Command {
@@ -26,25 +27,37 @@ export class UpdateCommandsEvent {
 	static src = ["instance", "controller"] as const;
 	static dst = ["controller", "control"] as const;
 	static plugin = "exp_commands" as const;
+	commands: PropertyMapDifference<string, Command>;
 
 	constructor(
-		public commands: Command[]
+		changed: Map<string, Command> = new Map(),
+        removed: Array<string> = [],
 	) {
+		this.commands = new PropertyMapDifference(changed, removed);
 	}
 
-	static jsonSchema = Type.Object({
-		"commands": Type.Array(Command.jsonSchema)
-	})
+	static jsonSchema = Type.Tuple([
+		Type.Array(Type.Tuple([
+            Type.String(), Command.jsonSchema
+        ])),
+        Type.Array(Type.String())
+	])
 
 	static fromJSON(json: Static<typeof UpdateCommandsEvent.jsonSchema>): UpdateCommandsEvent {
-		return new this(json.commands.map(command => Command.fromJSON(command)));
+		return new this(new Map(json[0].map(v => [v[0], Command.fromJSON(v[1])])), json[1]);
 	}
 
-	toProperty() {
-		return this.commands;
+	toJSON() {
+		return this.commands.toJSON();
 	}
 
-	static fromProperty(newValue: Command[]): UpdateCommandsEvent {
-		return new this(newValue);
+	static fromProperty(newValue: Map<string, Command>, oldValue: Map<string, Command> | null): UpdateCommandsEvent {
+		const rtn = new this();
+		rtn.commands = PropertyMapDifference.fromProperty(newValue, oldValue);
+		return rtn;
+	}
+
+	toProperty(oldValue: Map<string, Command>): Map<string, Command> {
+		return this.commands.toProperty(oldValue);
 	}
 }
