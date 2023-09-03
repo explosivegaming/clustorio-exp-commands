@@ -21,6 +21,37 @@ export class Command {
     }
 }
 
+export class UpdateCommandsEvent_Array {
+	declare ["constructor"]: typeof UpdateCommandsEvent;
+	static type = "event" as const;
+	static src = ["instance", "controller"] as const;
+	static dst = ["controller", "control"] as const;
+	static plugin = "exp_commands" as const;
+
+	constructor(
+		public commands: Array<Command> = [],
+	) {
+	}
+
+	static jsonSchema = Type.Array(Command.jsonSchema);
+
+	static fromJSON(json: Static<typeof UpdateCommandsEvent_Array.jsonSchema>): UpdateCommandsEvent_Array {
+		return new this(json.map(c => Command.fromJSON(c)));
+	}
+
+	toJSON() {
+		return this.commands;
+	}
+
+	static fromProperty(newValue: Array<Command>, oldValue: Array<Command> | null): UpdateCommandsEvent_Array {
+		return new this(newValue);
+	}
+
+	toProperty(oldValue: Array<Command>): Array<Command> {
+		return this.commands;
+	}
+}
+
 export class UpdateCommandsEvent {
 	declare ["constructor"]: typeof UpdateCommandsEvent;
 	static type = "event" as const;

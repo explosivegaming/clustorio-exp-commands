@@ -40,6 +40,10 @@ export class SubscribableProperty<T> {
         this.subscriptions.broadcast(this.event.fromProperty(newValue, this.value));
         this.value = newValue;
     }
+
+    broadcast() {
+        this.subscriptions.broadcast(this.event.fromProperty(this.value, null));
+    }
 }
 
 export class PropertySubscriber<T> extends EventSubscriber<T> {
