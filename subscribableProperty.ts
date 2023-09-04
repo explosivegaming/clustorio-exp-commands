@@ -16,16 +16,19 @@ export interface SubscribablePropertyEventClass<T, V> extends lib.EventClass<T> 
 }
 
 export class SubscribableProperty<T> {
+    lastSetTime: number;
+
     constructor(
         private subscriptions: SubscriptionHandler,
         private event: SubscribablePropertyEventClass<unknown, T>,
         private value: T,
     ) {
+        this.lastSetTime = Date.now();
         this.subscriptions.handle(event, this.handleSubscription.bind(this));
     }
 
     async handleSubscription(request: SubscriptionRequest) {
-        if (request.lastRequestTime < Date.now()) {
+        if (request.lastRequestTime <= this.lastSetTime) {
             return this.event.fromProperty(this.value, null);
         } else {
             return null;
@@ -38,6 +41,7 @@ export class SubscribableProperty<T> {
 
     set(newValue: T) {
         this.subscriptions.broadcast(this.event.fromProperty(newValue, this.value));
+        this.lastSetTime = Date.now();
         this.value = newValue;
     }
 
@@ -75,6 +79,12 @@ export class PropertySetDifference<T> {
     static jsonSchema = Type.Tuple([
 		Type.Array(Type.Unknown()), Type.Array(Type.Unknown())
 	])
+
+    static newJsonSchema<T extends TSchema>(valueType: T) {
+        return Type.Tuple([
+            Type.Array(valueType), Type.Array(valueType)
+        ])
+    }
 
     static fromJSON<T>(json: Static<typeof PropertySetDifference.jsonSchema>): PropertySetDifference<T>;
 	static fromJSON(json: any): PropertySetDifference<unknown> {
@@ -121,6 +131,15 @@ export class PropertyMapDifference<K,V> {
         ])),
         Type.Array(Type.Unknown())
 	])
+
+    static newJsonSchema<K extends TSchema, V extends TSchema>(keyType: K, valueType: V) {
+        return Type.Tuple([
+            Type.Array(Type.Tuple([
+                keyType, valueType
+            ])),
+            Type.Array(keyType)
+        ])
+    }
 
     static fromJSON<K,V>(json: Static<typeof PropertyMapDifference.jsonSchema>): PropertyMapDifference<K,V>;
 	static fromJSON(json: Static<typeof PropertyMapDifference.jsonSchema>): PropertyMapDifference<unknown, unknown> {

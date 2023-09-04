@@ -67,12 +67,7 @@ export class UpdateCommandsEvent {
 		this.commands = new PropertyMapDifference(changed, removed);
 	}
 
-	static jsonSchema = Type.Tuple([
-		Type.Array(Type.Tuple([
-            Type.String(), Command.jsonSchema
-        ])),
-        Type.Array(Type.String())
-	])
+	static jsonSchema = PropertyMapDifference.newJsonSchema(Type.String(), Command.jsonSchema);
 
 	static fromJSON(json: Static<typeof UpdateCommandsEvent.jsonSchema>): UpdateCommandsEvent {
 		return new this(new Map(json[0].map(v => [v[0], Command.fromJSON(v[1])])), json[1]);
@@ -83,9 +78,8 @@ export class UpdateCommandsEvent {
 	}
 
 	static fromProperty(newValue: Map<string, Command>, oldValue: Map<string, Command> | null): UpdateCommandsEvent {
-		const rtn = new this();
-		rtn.commands = PropertyMapDifference.fromProperty(newValue, oldValue);
-		return rtn;
+		const diff = PropertyMapDifference.fromProperty(newValue, oldValue);
+		return new this(diff.changed, diff.removed);
 	}
 
 	toProperty(oldValue: Map<string, Command>): Map<string, Command> {
