@@ -7,9 +7,9 @@ System command to execute a command as another player using their permissions (e
 /_system-sudo Cooldude2606 repeat 5
 ]]
 
-local Commands = require("modules/exp_commands/module_exports")
+local Commands = require("modules/exp_commands")
 
-Commands.new("_system-sudo", "Run a command as another player")
+Commands.new("_sudo", "Run a command as another player")
 :add_flags{ "system_only" }
 :enable_auto_concatenation()
 :argument("player", "player")

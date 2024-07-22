@@ -73,6 +73,33 @@ Commands._metatable = {
     __class = "ExpCommand"
 }
 
+Commands.player_server = setmetatable({
+	index = 0,
+	color = Color.white,
+	chat_color = Color.white,
+	name = "<server>",
+	tag = "",
+	connected = true,
+	admin = true,
+	afk_time = 0,
+	online_time = 0,
+	last_online = 0,
+	spectator = true,
+	show_on_map = false,
+	valid = true,
+	object_name = "LuaPlayer"
+}, {
+	__index = function(_, key)
+		if key == "__self" or type(key) == "number" then return nil end
+		Commands.error("Command does not support rcon usage, requires reading player." .. key)
+		error("Command does not support rcon usage, requires reading player." .. key)
+	end,
+	__newindex = function(_, key)
+		Commands.error("Command does not support rcon usage, requires reading player." .. key)
+		error("Command does not support rcon usage, requires setting player." .. key)
+	end
+})
+
 --- Status Returns.
 -- Return values used by command callbacks
 -- @section command-status
@@ -149,7 +176,7 @@ end
 -- @treturn boolean true if the player has permission to use the command
 -- @treturn LocaleString|string when permission is denied, this is the reason permission was denied
 function Commands.player_has_permission(player, command)
-    if player == nil then return true end
+    if player == nil or player == Commands.player_server then return true end
 
     for _, permission_authority in ipairs(Commands.permission_authorities) do
         local status, msg = permission_authority(player, command)
@@ -335,10 +362,10 @@ end
 function Commands.print(message, color, sound)
     local player = game.player
     if not player then
-        rcon.print(game.table_to_json(message))
+        rcon.print(ExpUtil.format_any(message))
     else
-        local formatted = ExpUtil.format_any(message)
-        player.print(formatted, color)
+        local formatted = ExpUtil.format_any(message, nil, 20)
+        player.print(formatted, color or Color.white)
         player.play_sound{ path = sound or 'utility/scenario_message' }
     end
 end
@@ -363,7 +390,8 @@ end
 -- @tparam string help The help message / description of the command
 -- @treturn Command A new command object which can be registered
 function Commands.new(name, help)
-    ExpUtil.assert_argument_types("string", "string")
+    ExpUtil.assert_argument_type(name, "string", 1, "name")
+    ExpUtil.assert_argument_type(help, "string", 2, "help")
     if Commands.registered_commands[name] then
         error("Command is already defined at: "..Commands.registered_commands[name].defined_at, 2)
     end
@@ -431,9 +459,20 @@ end
 -- @tparam table defaults A table who's keys are the argument names and values are the defaults or function which returns a default
 -- @treturn Command The command object to allow chaining method calls
 function Commands._prototype:defaults(defaults)
-    for name, value in pairs(defaults) do
-        if self.arguments[name] then
-            self.arguments[name].default = value
+	local matched = {}
+	for _, argument in ipairs(self.arguments) do
+		if defaults[argument.name] then
+			if not argument.optional then
+				error("Attempting to set default value for required argument: " .. argument.name)
+			end
+			argument.default = defaults[argument.name]
+			matched[argument.name] = true
+		end
+	end
+	-- Check that there are no extra values in the table
+    for name in pairs(defaults) do
+        if not matched[name] then
+			error("No argument with name: " .. name)
         end
     end
     return self
@@ -492,10 +531,10 @@ function Commands._prototype:register(callback)
     local function command_callback(event)
         event.name = self.name
         local success, traceback = xpcall(Commands._event_handler, debug.traceback, event)
-        if not success then
-            local _, msg = Commands.status.internal_error()
+        if not success and not traceback:find("Command does not support rcon usage") then
+            local _, msg = Commands.status.internal_error(event.tick)
             Commands.error(msg)
-            log(traceback)
+            log("Internal Command Error " .. event.tick .. "\n" .. traceback)
         end
     end
 
@@ -527,6 +566,9 @@ end
 
 --- Extract the arguments from a string input string
 local function extract_arguments(raw_input, max_args, auto_concat)
+	-- nil check when no input given
+	if raw_input == nil then return {} end
+
     -- Extract quoted arguments
     local quoted_arguments = {}
     local input_string = raw_input:gsub('"[^"]-"', function(word)
@@ -569,7 +611,7 @@ function Commands._event_handler(event)
         error("Command not recognised: "..event.name)
     end
 
-    local player = nil -- nil represents the server
+    local player = nil -- nil represents the server until the command is called
     if event.player_index then
         player = game.get_player(event.player_index)
     end
@@ -614,7 +656,7 @@ function Commands._event_handler(event)
             end
         else
             -- Parse the raw argument to get the correct data type
-            local success, status, parsed = Commands.parse_data_type(argument.data_type_parser, input, player, unpack(argument.parse_args))
+            local success, status, parsed = Commands.parse_data_type(argument.data_type_parser, input, player, table.unpack(argument.parse_args))
             if success == false then
                 log_command("Input parse failed", command, player, event.parameter, { status = valid_command_status[status], index = index, argument = argument, reason = parsed })
                 return Commands.error{'exp-commands.invalid-argument', argument.name, parsed}
@@ -625,7 +667,7 @@ function Commands._event_handler(event)
     end
 
     -- Run the command, dont need xpcall here because errors are caught in command_callback
-    local status, status_msg = command.callback(player, unpack(arguments))
+    local status, status_msg = command.callback(player or Commands.player_server, table.unpack(arguments))
     if valid_command_status[status] then
         if status ~= Commands.status.success then
             log_command("Custom Error", command, player, event.parameter, status_msg)

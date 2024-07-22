@@ -1,16 +1,6 @@
 {
-	"include": ["./**/*.ts"],
-	"exclude": ["test/*", "./dist/*"],
-	"compilerOptions": {
-		"lib": ["es2023"],
-		"module": "commonjs",
-		"target": "es2022",
-		"rootDir": ".",
-		"outDir": "dist/plugin",
-		"sourceMap": true,
-		"strict": true,
-		"alwaysStrict": true,
-		"esModuleInterop": true,
-		"skipLibCheck": true
-	}
+	"files": [],
+	"references": [
+		{ "path": "./tsconfig.node.json" }
+	]
 }

@@ -19,7 +19,7 @@ The default data types that are available to all commands
 ]]
 
 local ExpUtil = require("modules/exp_util")
-local Commands = require("modules/exp_commands/module_exports")
+local Commands = require("modules/exp_commands")
 local add, parse = Commands.add_data_type, Commands.parse_data_type
 local valid, invalid = Commands.status.success, Commands.status.invalid_input
 

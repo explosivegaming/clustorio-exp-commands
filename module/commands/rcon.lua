@@ -12,7 +12,7 @@ System command which runs arbitrary code within a custom (not sandboxed) environ
 local ExpUtil = require("modules/exp_util")
 local Async = require("modules/exp_util/async")
 local Global = require("modules/exp_util/global")
-local Commands = require("modules/exp_commands/module_exports")
+local Commands = require("modules/exp_commands")
 local Clustorio = require("modules/clusterio/api")
 
 local rcon_env = {}
@@ -54,7 +54,7 @@ function Commands.add_rcon_callback(name, callback)
     rcon_callbacks[name] = callback
 end
 
-Commands.new("_system-rcon", "Execute arbitrary code within a custom environment")
+Commands.new("_rcon", "Execute arbitrary code within a custom environment")
 :add_flags{ "system_only" }
 :enable_auto_concatenation()
 :argument("invocation", "string")
@@ -62,7 +62,7 @@ Commands.new("_system-rcon", "Execute arbitrary code within a custom environment
     -- Construct the environment the command will run within
     local env = setmetatable({}, { __index = rcon_env, __newindex = rcon_env })
     for name, callback in pairs(rcon_callbacks) do
-        local _, rtn = pcall(callback, player)
+        local _, rtn = pcall(callback, player.index > 0 and player or nil)
         rawset(env, name, rtn)
     end
 
@@ -73,7 +73,7 @@ Commands.new("_system-rcon", "Execute arbitrary code within a custom environment
     else
         local success, rtn = xpcall(invocation, debug.traceback)
         if success == false then
-            local err = rtn:gsub('%.%.%..-/temp/currently%-playing', '')
+            local err = rtn:gsub('%.%.%..-/temp/currently%-playing/', '')
             return Commands.status.error(err)
         else
             return Commands.status.success(rtn)

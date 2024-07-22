@@ -9,7 +9,7 @@ Game command to list and search all registered commands in a nice format
 ]]
 
 local Global = require("modules/exp_util/global")
-local Commands = require("modules/exp_commands/module_exports")
+local Commands = require("modules/exp_commands")
 
 local PAGE_SIZE = 5
 
@@ -60,6 +60,11 @@ Commands.new("commands", "List and search all commands for a keyword")
         pages, found = format_as_pages(commands, PAGE_SIZE)
         search_cache[player.index] = { keyword = keyword, pages = pages, found = found }
     end
+
+	-- Error if no pages found
+	if found == 0 then
+		return Commands.status.success{ "exp-commands-help.no-results" }
+	end
 
     local page_data = pages[page]
     if page_data == nil then

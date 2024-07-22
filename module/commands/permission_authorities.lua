@@ -9,7 +9,7 @@ The default permission authorities controlled by the flags: admin_only, system_o
 ]]
 
 local Global = require("modules/exp_util/global")
-local Commands = require("modules/exp_commands/module_exports")
+local Commands = require("modules/exp_commands")
 local add, allow, deny = Commands.add_permission_authority, Commands.status.success, Commands.status.unauthorised
 
 local permission_authorities = {}
@@ -78,20 +78,10 @@ add(function(player, command)
     end
 end)
 
---- If a command has the flag "no_rcon" then rcon connections can not use the command
-permission_authorities.no_rcon =
-add(function(player, command)
-    if command.flags.no_rcon and player == nil then
-        return deny("Rcon connections can not use this command")
-    else
-        return allow()
-    end
-end)
-
---- If a command has the flag "disabled" or Commands.disable was called, then no one can use the command
+--- If Commands.disable was called then no one can use the command
 permission_authorities.disabled =
 add(function(_, command)
-    if command.flags.disabled or disabled_commands[command.name] then
+    if disabled_commands[command.name] then
         return deny{"exp-commands-permissions.disabled"}
     else
         return allow()
