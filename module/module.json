@@ -7,5 +7,9 @@
 		"commands/rcon.lua",
 		"commands/sudo.lua",
 		"commands/ipc.lua"
-	]
+	],
+	"dependencies": {
+		"clusterio": "*",
+		"exp_util": "*"
+	}
 }
